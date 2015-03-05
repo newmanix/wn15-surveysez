@@ -31,15 +31,60 @@ if(isset($_GET['id']) && (int)$_GET['id'] > 0){#proper data must be on querystri
 }else{
 	myRedirect(VIRTUAL_PATH . "surveys/index.php");
 }
+/*
+we know that we want results or the survey,
+not both...
+
+we also know we may have no survey at all
+
+if result, show result
+else if survey, show survey
+else show sorry, no survey
+
+if(result){
+	
+}else if(survey){
+	
+}else{	
+	echo 'sorry no survey!';
+}
+
+if(result){
+	
+}else{
+	
+	if(survey){
+	
+	}else{	
+		echo 'sorry no survey!';
+	}
+	
+	
+}	
+	
+
+	
+
+*/
+$myResult = new Result($myID);
+if($myResult->isValid)
+{
+	$PageTitle = "'Result to " . $myResult->Title . "' Survey!";
+}else{
+	$mySurvey = new Survey($myID);
+	if($mySurvey->isValid){
+		$config->titleTag = $mySurvey->Title . " survey!"; #overwrite PageTitle with Muffin info!
+	}
+	else{
+		$config->titleTag = "No such survey!";
+	}
+}
 
 
-$mySurvey = new Survey($myID);
-if($mySurvey->isValid){
-$config->titleTag = $mySurvey->Title . " survey!"; #overwrite PageTitle with Muffin info!
-}
-else{
-$config->titleTag = "No such survey!";
-}
+
+
+
+
 
 //dumpDie($mySurvey);
 
@@ -51,16 +96,29 @@ echo '
 <h3 align="center">' . $config->titleTag . '</h3>
 ';
 
-if($mySurvey->isValid)
-{ #check to see if we have a valid SurveyID
-	echo "<b>" . $mySurvey->SurveyID . ") </b>";
-	echo "<b>" . $mySurvey->Title . "</b>-->";
-	echo "<b>" . $mySurvey->Description . "</b><br />";
-	echo $mySurvey->showQuestions();
+if($myResult->isValid)
+{# check to see if we have a valid SurveyID
+	echo "Survey Title: <b>" . $myResult->Title . "</b><br />";  //show data on page
+	echo "Survey Description: " . $myResult->Description . "<br />";
+	$myResult->showGraph() . "<br />";	//showTallies method shows all questions, answers and tally totals!
 	echo SurveyUtil::responseList($myID);
+	unset($myResult);  //destroy object & release resources
 }else{
-	echo "Sorry, no such survey!";	
+
+	if($mySurvey->isValid)
+	{ #check to see if we have a valid SurveyID
+		echo "<b>" . $mySurvey->SurveyID . ") </b>";
+		echo "<b>" . $mySurvey->Title . "</b>-->";
+		echo "<b>" . $mySurvey->Description . "</b><br />";
+		echo $mySurvey->showQuestions();
+		echo SurveyUtil::responseList($myID);
+	}else{
+		echo "Sorry, no such survey!";	
+	}
 }
+
+
+
 
 get_footer(); #defaults to theme footer or footer_inc.php
 
